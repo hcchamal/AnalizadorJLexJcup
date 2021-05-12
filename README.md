@@ -1,2 +1,2 @@
 # AnalizadorJLexJcup
-Archivos creados para el proyecto
+Archivos que contiene el analisis lexico y sintactico realizado
