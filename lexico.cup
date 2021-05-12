@@ -1,0 +1,105 @@
+package lexico;
+import java.io.*;
+import java_cup.runtime.*; 
+
+parser code
+{:
+	public static void main(String args[]) throws Exception{
+		//new parser(new Yylex(new FileInputStream(args[0]))).parse();
+		new parser(new Yylex(System.in)).parse();
+	}
+	public void syntax_error(Symbol s){
+		report_error("Error de sintaxis. Linea: " + (s.right + 1) +
+		" Columna: " + s.left + ". Texto: \"" + s.value + "\"", null);
+	}
+:}
+
+terminal String SET, PUTS, EXPR, IF, THEN, ELSEIF, ELSE, SWITCH, DEFAULT, WHILE, CONTINUE, BREAK, FOR, PROC, RETURN, INCR;
+terminal String DOLAR, COMILLAS, DIAGONALINV, LLAVEAP, LLAVECL, CORCHETEAP, CORCHETECL, SIGNMAS, SIGNMEN, ASTERISCO, DIAGONAL, PORCENTAJE, MENORQUE, MAYORQUE, IGUAL, EQUALS, NOEQUALS, EQLIST, NOEQLIST, AND, OR, NEGACION;
+terminal String IDENTIFICADOR;
+terminal integer DIGITO;
+
+non terminal Fact, Term, Lit, Val, Exp, Asig, Impr, Comp_rel, Comp_cad, Comp_log, Exponente, Comp, Cond, Sent_if, Resto_sent_if, Sent_switch, Resto_sent_switch, Sent_while, Sent_for, Sentencia, Args, Procedimiento, Programa;
+
+Programa ::= Procedimiento | Sentencia {: System.out.println("Programa analizado correctamente. Sin errores."); :}
+			| error {: System.out.println("Error sintactico en el programa"); :}
+			;
+			
+Procedimiento ::= PROC IDENTIFICADOR CORCHETEAP Args CORCHETECL CORCHETEAP Sentencia RETURN Exp CORCHETECL ;
+
+Sentencia ::= Asig
+			| Impr
+			| Sent_for
+			| Sent_if
+			| Sent_switch
+			| Sent_while ;
+
+Sent_if ::= IF CORCHETEAP Cond CORCHETECL CORCHETEAP Sentencia Resto_sent_if ;
+
+Resto_sent_if ::= CORCHETECL 
+				| ELSE CORCHETEAP Sentencia CORCHETECL
+				| ELSEIF CORCHETEAP Sentencia CORCHETECL
+				| Resto_sent_if
+
+Sent_switch ::= SWITCH Term CORCHETEAP Term CORCHETEAP Sentencia Resto_sent_switch ;
+
+Resto_sent_switch ::= CORCHETECL 
+					| Term CORCHETEAP Sentencia CORCHETECL
+					| DEFAULT CORCHETEAP Sentencia CORCHETECL 
+					| Resto_sent_switch;
+
+Sent_while ::= WHILE CORCHETEAP Exp CORCHETECL
+			CORCHETECL CORCHETEAP Sentencia CORCHETECL ;
+
+
+Sent_for ::= FOR CORCHETEAP Asig CORCHETECL CORCHETEAP Exp CORCHETECL
+			CORCHETEAP INCR Term CORCHETECL CORCHETEAP Sentencia CORCHETECL ;
+
+Args ::= Term | Args ;
+
+Cond ::= Exp Comp Exp
+
+Comp ::= Comp_cad
+		| Comp_log
+		| Comp_rel ;
+
+Comp_rel ::= MENORQUE 
+			| MAYORQUE 
+			| MENORQUE IGUAL
+			| MAYORQUE IGUAL
+			| IGUAL IGUAL ;
+		
+Comp_cad ::= EQUALS | NOEQLIST | EQLIST | NOEQLIST ;
+
+Comp_log ::= AND | OR | NEGACION ;		
+		
+Asig ::= SET IDENTIFICADOR Exp;		
+		
+Impr ::= PUTS Exp;
+
+Exp ::= Exp SIGNMEN Term
+		| Exp SIGNMAS Term
+		| CORCHETEAP EXPR Exp CORCHETECL
+		| Term ;
+
+Term ::= Lit
+		| Val
+		| Term DIAGONAL Term
+		| Term PORCENTAJE Term
+		| Term ASTERISCO Term
+		| Exponente
+		| Fact ;
+
+Val ::= DOLAR IDENTIFICADOR
+		| SIGNMAS DIGITO
+		| SIGNMEN DIGITO ;
+
+Exponente ::= Fact ASTERISCO ASTERISCO Fact ;
+
+Lit ::= COMILLAS Term COMILLAS
+		| DIAGONAL Val
+		| Lit ;
+		
+Fact ::= IDENTIFICADOR | DIGITO ;
+
+	
